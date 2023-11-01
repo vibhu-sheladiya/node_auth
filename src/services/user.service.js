@@ -35,7 +35,7 @@ const deleteUser = async (userId) => {
 };
 /**email by user */
 const findUserByEmail = async (email) => {
-  return await User.findOne(email);
+  return await User.findOne({email});
 };
 const findByEmail = async (email) => {
   return await User.findOne({ email });

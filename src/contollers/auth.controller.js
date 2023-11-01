@@ -5,14 +5,21 @@ const bcrypt = require("bcrypt");
 const moment = require("moment");
 const jwt = require("jsonwebtoken");
 const jwtSecrectKey = "cdccsvavsvfssbtybnjnuki";
+const fs = require("fs");
 // require("dotenv").config();
 // const { auth } = require("../middleware/auth2");
 const User = require("../models/user.model");
 // const config = "../config/config.js";
 
 const register = async (req, res) => {
-  const { email, password, role } = req.body;
-  const existingUser = await userService.findUserByEmail({ email });
+  // const { email, password, role } = req.body;
+  const reqBody = req.body;
+  if (req.file) {
+    reqBody.profile_img = req.file.filename;
+  } else {
+    throw new Error("Product image is required!");
+  }
+  const existingUser = await userService.findUserByEmail(reqBody.email);
 
   if (existingUser) {
     return res.status(400).json({
@@ -21,24 +28,25 @@ const register = async (req, res) => {
     });
   }
 
-  const hashPassword = await bcrypt.hash(password, 8);
+  const hashPassword = await bcrypt.hash(reqBody.password, 8);
 
   let option = {
-    email,
-    role,
+    email:reqBody.email,
+    role:reqBody.role,
     exp: moment().add(1, "days").unix(),
   };
 
   const token = await jwt.sign(option,jwtSecrectKey);
 
   const filter = {
-    email,
-    role,
+    ...reqBody,
+    // email:reqBody.email,
+    // role:reqBody.role,
     password: hashPassword,
     token,
   };
-
-  const data = await userService.createUser(filter);
+ 
+  const data = await userService.createUser(filter,reqBody);
 
   res.status(200).json({ success: true, data: data });
 };

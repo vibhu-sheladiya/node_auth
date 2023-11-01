@@ -1,6 +1,7 @@
 const express = require("express");
 const { userController, authController } = require("../../contollers");
 const auth = require("../../middlewares/auth");
+const {upload}=require("../../middlewares/upload");
 const router = express.Router();
 
 
@@ -9,7 +10,10 @@ const router = express.Router();
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------- register/signUp/create  user -------------------------- */
-router.post("/create-user", authController.register);
+router.post("/create-user", upload.single("profile_img"), authController.register);
+// router.post("/create-user", authController.register);
+// router.post("/create-user", authController.register);
+
 /* ---------------------------- LOGIN/SIGNIN USER --------------------------- */
 router.post("/login", authController.login);
 /* -------------------------- FORGOT PASSWORD USER ------------------------- */

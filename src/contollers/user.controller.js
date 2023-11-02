@@ -1,10 +1,10 @@
 const { userService} = require("../services");
 const { User } = require("../models");// use in delete many 
 
-/** Get user list */
+/* ------------------------ GET USER LIST (ROLE WISE) WITH AUTH ----------------------- */
 const getUserListRole = async (req, res) => {
   try {
-    const getList = await userService.getUserList(req, res);
+    const getList = await userService.getUserListSimple(req, res);
     const userRole=req.body.role;
     let users=[];
     if(userRole==='user'){
@@ -18,7 +18,6 @@ const getUserListRole = async (req, res) => {
         }else{
           res.send(getList);
           }
-          
           } catch (err) {
             console.log('Error in getting the user list', err);
             res.status(500).send(err);
@@ -26,21 +25,56 @@ const getUserListRole = async (req, res) => {
             };
 
 
-/** Get user list */
+/* -------------- GET USER LIST WITH SIMPLE AUTH AND PAGINATION ------------- */
 const getUserList = async (req, res) => {
   try {
-    const getList = await userService.getUserList(req, res);
+    const { search, page, perPage, ...options } = req.query;
+    let filter = {};
+
+    if (search) {
+      filter.user_name = { $regex: search, $options: "i" };
+    }
+
+    const currentPage = parseInt(page) || 1;
+    const itemsPerPage = parseInt(perPage) || 3;
+
+    // Calculate the number of documents to skip based on the current page and items per page
+    const skip = (currentPage - 1) * itemsPerPage;
+
+    const userList = await userService.getUserList(filter, {
+      skip: skip,
+      limit: itemsPerPage,
+      ...options, // You can pass other query options here
+    });
 
     res.status(200).json({
       success: true,
       message: "Get user list successfully!",
-      data: getList,
+      data: userList,
+      currentPage: currentPage,
+      totalPages: Math.ceil(userList.length / itemsPerPage),
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
-}
-/** Get user details by id */
+};
+
+
+/* --------------- GET USER LIST ROLE WISE (SIMPLE) WITH AUTH --------------- */
+const getAllUser = async (req, res) => {
+  try {
+    const data = await userService.getAllUser({ role: req.body.role });
+    res.status(200).json({
+      success: true,
+      message: "User list successfully!",
+      data: { data },
+    });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+/* --------------------------- GET USER LIST BY ID -------------------------- */
 const getUserDetails = async (req, res) => {
   try {
     const getDetails = await userService.getUserById(req.params.userId);
@@ -58,31 +92,49 @@ const getUserDetails = async (req, res) => {
   }
 };
 
-
-
-/** user details update by id */
+/* -------------------------- GET USER UPDATE BY ID ------------------------- */
 const updateDetails = async (req, res) => {
   try {
+    // const reqBody=req.body;
     const userId = req.params.userId;
-    const userRole=req.body.role;
+    const { role, gender,user_name,address } = req.body; // Extract the 'role' and 'gender' fields from the request body
     const userExists = await userService.getUserById(userId);
+
     if (!userExists) {
       throw new Error("User not found!");
     }
-   if(userRole==='user'){
-    throw new Error('You are not allowed to change role of admin');
-   }
-    await userService.updateUser(userId, req.body);
-    res
-      .status(200)
-      .json({ success: true, message: "User details update successfully!",data:userExists});
+
+    if (userExists.role === 'admin' && role !== 'admin') {
+      throw new Error("Admins cannot change their role");
+    }
+
+    if (userExists.role !== 'admin' && role === 'admin') {
+      throw new Error("You are not allowed to change your role to admin");
+    }
+
+    // Update the user's gender and other details
+    userExists.gender = gender; // Update the 'gender' field
+    userExists.user_name = user_name; // Update the 'firstName' field
+    userExists.address = address; // Update the 'lastName' field
+    if (req.file) {
+      userExists.profile_img = req.file.filename; // Store the path to the uploaded profile image
+    }
+    await userService.updateUser(userId, userExists); // Save the updated user
+
+    res.status(200).json({
+      success: true,
+      message: "User details updated successfully!",
+      data: userExists,
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
 
-/** Delete user */
+
+
+/* ------------------------ DELETE SINGLE USER BY ID ------------------------ */
 const deleteUser = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -103,7 +155,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-/**delete many */
+/* ------------------------- DELETE MANY USER BY ID ------------------------- */
 const deleteManyUsers = async (req, res) => {
   try {
     const {_id} = req.body;
@@ -124,19 +176,6 @@ if(result.deletedCount===0){
   }
 };
 
-/**role wise user list */
-const getAllUser = async (req, res) => {
-  try {
-     const data = await userService.getAllUser({ role: req.body.role });
-    res.status(200).json({
-      success: true,
-      message: "User list successfully!",
-      data: { data },
-    });
-  } catch (error) {
-    res.status(404).json({ error: error.message });
-  }
-};
 module.exports = {
    getAllUser,
   getUserListRole,

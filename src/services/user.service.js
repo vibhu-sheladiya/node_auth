@@ -5,8 +5,12 @@ const createUser = async (reqBody) => {
   return User.create(reqBody);
 };
 /**get user list */
-const getUserList = async (req, res) => {
-  return User.find();
+const getUserList =  async (filter, options) => {
+  const skip = Number((options.page || 1) - 1) * Number(options.limit || 10);
+  return User.find(filter).limit(Number(options.limit)).skip(Number(skip));
+};
+const getUserListSimple =  async (req,res) => {
+ return User.find();
 };
 const getAllUser = async (role) => {
   return await User.find(role);
@@ -65,5 +69,6 @@ module.exports = {
   findByEmail,
   updatePassword,
   getAllUser,
+  getUserListSimple,
 
 };

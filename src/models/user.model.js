@@ -23,15 +23,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    gender: {
+      type: String,
+      trim: true,
+    },
+    hobbies: {
+      type: Array,
+    },
     // address of the user
     address: {
       type: String,
       trim: true,
     },
-    profile_img:{
-      type:String,
-      trim:true,
-  },
+    profile_img: {
+      type: String,
+      trim: true,
+    },
     // country india of the user
     country_india: {
       type: String,
@@ -48,17 +55,17 @@ const userSchema = new mongoose.Schema(
     token: {
       type: String,
     },
-    
+
     // isVerified:{
     //   type : Boolean ,
     //   default : false
     //   }
-    newPassword:{
-      type :String,
-    }
+    newPassword: {
+      type: String,
+    },
   },
-  { 
-    timestamps: true ,
+  {
+    timestamps: true,
     versionKey: false,
     toJSON: {
       transform: function (doc, data) {
@@ -70,13 +77,13 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-  userSchema.pre("save", async function (next) {
-    if (!this.isModified || !this.isNew) {
-      next();
-    } else this.isModified("password");
-    if (this.password)
-      this.password = await bcrypt.hash(String(this.password), 12);
+userSchema.pre("save", async function (next) {
+  if (!this.isModified || !this.isNew) {
     next();
-  });
+  } else this.isModified("password");
+  if (this.password)
+    this.password = await bcrypt.hash(String(this.password), 12);
+  next();
+});
 const User = mongoose.model("user", userSchema);
 module.exports = User;

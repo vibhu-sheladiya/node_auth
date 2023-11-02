@@ -46,7 +46,9 @@ router.delete("/delete-user/:userId", userController.deleteUser);
 router.delete("/delete-many", userController.deleteManyUsers);
 
 // /* ------------------------- update user info ------------------------ */
-router.put("/update/:userId", userController.updateDetails);
+// router.put("/update/:userId", userController.updateDetails);
+router.put("/update/:userId",upload.single("profile_img"), userController.updateDetails);
+
 
 module.exports = router;
 

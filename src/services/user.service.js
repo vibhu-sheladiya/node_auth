@@ -1,3 +1,4 @@
+const { options } = require("joi");
 const { User } = require("../models");
 
 /**create user */
@@ -5,13 +6,18 @@ const createUser = async (reqBody) => {
   return User.create(reqBody);
 };
 /**get user list */
-const getUserList =  async (filter, options) => {
-  const skip = Number((options.page || 1) - 1) * Number(options.limit || 10);
-  return User.find(filter).limit(Number(options.limit)).skip(Number(skip));
-};
-const getUserListSimple =  async (req,res) => {
+const getUserList = async (filter, options) => {
  return User.find();
 };
+// const getUserList=async(filter,options)=>{
+
+// }
+const getUserListSimple = async (req, res) => {
+  return User.find();
+};
+// const getUserListSearch =  async (req,res) => {
+//   return User.find(req.query);
+//  };
 const getAllUser = async (role) => {
   return await User.find(role);
 };
@@ -39,7 +45,10 @@ const deleteUser = async (userId) => {
 };
 /**email by user */
 const findUserByEmail = async (email) => {
-  return await User.findOne({email});
+  return await User.findOne(email);
+};
+const findUserByLogonEmail = async (email) => {
+  return await User.findOne(email);
 };
 const findByEmail = async (email) => {
   return await User.findOne({ email });
@@ -70,5 +79,6 @@ module.exports = {
   updatePassword,
   getAllUser,
   getUserListSimple,
-
+  findUserByLogonEmail
+  // getUserListSearch
 };

@@ -13,11 +13,11 @@ const register = async (req, res) => {
   // const { email, password, role } = req.body;
   console.log(req.body);
   const reqBody = req.body;
-  if (req.file) {
-    reqBody.profile_img = req.file.filename;
-  } else {
-    throw new Error("Product image is required!");
-  }
+  // if (req.file) {
+  //   reqBody.profile_img = req.file.filename;
+  // } else {
+  //   throw new Error("Product image is required!");
+  // }
   const existingUser = await userService.findUserByEmail(reqBody.email);
 
   if (existingUser) {
@@ -56,13 +56,13 @@ const login = async (req, res) => {
   try {
     // validation;
     const { email, password } = req.body;
-
-    const findUser = await userService.findUserByEmail({ email });
-
+    console.log(req.body);
+    const findUser = await userService.findUserByLogonEmail({email} );
+    console.log(findUser, "++++");
     if (!findUser) throw Error("User not found");
 
     const successPassword = await bcrypt.compare(password, findUser.password);
-
+    console.log(successPassword, "000000000");
     console.log("Input Password:", password);
     console.log("Hashed Password in Database:", findUser.password);
 
@@ -81,7 +81,7 @@ const login = async (req, res) => {
 
     let token;
     if (findUser && successPassword) {
-      token = await jwt.sign(option, jwtSecrectKey);
+      token = await jwt.sign(option,jwtSecrectKey);
     }
     let data;
     if (token) {
